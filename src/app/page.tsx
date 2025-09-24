@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Plus, X, Loader2, BrainCircuit } from "lucide-react";
 import { analyzeOptionsAndReturnBest, type AnalyzeOptionsAndReturnBestOutput } from "@/ai/flows/analyze-options-and-return-best";
 import { Button } from "@/components/ui/button";
@@ -9,11 +9,28 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
+const RATE_LIMIT = 5;
+const RATE_LIMIT_DURATION = 6 * 60 * 1000; // 6 minutes in milliseconds
+
 export default function Home() {
   const [options, setOptions] = useState<string[]>(["", ""]);
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<AnalyzeOptionsAndReturnBestOutput | null>(null);
   const { toast } = useToast();
+  const [requestTimestamps, setRequestTimestamps] = useState<number[]>([]);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout | null = null;
+    if (cooldown > 0) {
+      interval = setInterval(() => {
+        setCooldown((prev) => Math.max(0, prev - 1));
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [cooldown]);
 
   const handleOptionChange = (index: number, value: string) => {
     const newOptions = [...options];
@@ -33,6 +50,25 @@ export default function Home() {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    const now = Date.now();
+    const recentRequests = requestTimestamps.filter(
+      (timestamp) => now - timestamp < RATE_LIMIT_DURATION
+    );
+
+    if (recentRequests.length >= RATE_LIMIT) {
+      const oldestRequest = recentRequests[0];
+      const timeToWait = Math.ceil((RATE_LIMIT_DURATION - (now - oldestRequest)) / 1000);
+      setCooldown(timeToWait);
+      toast({
+        title: "Rate limit exceeded",
+        description: `Please wait before making another request.`,
+        variant: "destructive",
+      });
+      return;
+    }
+
+
     const filledOptions = options.map(o => o.trim()).filter(o => o !== "");
     if (filledOptions.length < 2) {
       toast({
@@ -49,6 +85,7 @@ export default function Home() {
     try {
       const aiResult = await analyzeOptionsAndReturnBest({ options: filledOptions });
       setResult(aiResult);
+      setRequestTimestamps([...recentRequests, now]);
     } catch (error) {
       console.error(error);
       toast({
@@ -60,6 +97,15 @@ export default function Home() {
       setIsLoading(false);
     }
   };
+  
+  const isButtonDisabled = isLoading || cooldown > 0;
+
+  const formatTime = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
 
   return (
     <main className="flex min-h-screen w-full flex-col items-center justify-between bg-background p-4 sm:p-8">
@@ -112,12 +158,14 @@ export default function Home() {
               </Button>
             </CardContent>
             <CardFooter>
-              <Button type="submit" disabled={isLoading} className="w-full" variant="accent">
+              <Button type="submit" disabled={isButtonDisabled} className="w-full" variant="accent">
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Analyzing...
                   </>
+                ) : cooldown > 0 ? (
+                  `Wait ${formatTime(cooldown)}`
                 ) : (
                   "Decide for Me"
                 )}
@@ -128,7 +176,11 @@ export default function Home() {
 
         {isLoading && (
             <div className="flex flex-col items-center justify-center gap-4 text-center">
-                <Loader2 className="h-8 w-8 animate-spin text-primary"/>
+                <div className="flex items-center justify-center gap-2 text-muted-foreground">
+                    <div className="h-2 w-2 animate-pulse rounded-full bg-primary [animation-delay:-0.3s]" />
+                    <div className="h-2 w-2 animate-pulse rounded-full bg-primary [animation-delay:-0.15s]" />
+                    <div className="h-2 w-2 animate-pulse rounded-full bg-primary" />
+                </div>
                 <p className="text-muted-foreground">AI is thinking...</p>
             </div>
         )}
