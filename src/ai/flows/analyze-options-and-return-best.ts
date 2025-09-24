@@ -23,7 +23,8 @@ const AnalyzeOptionsAndReturnBestOutputSchema = z.object({
   bestOption: z.string().describe('The best option chosen by the AI.'),
   reasoning: z
     .string()
-    .describe('The AI reasoning behind choosing the best option.'),
+    .max(240)
+    .describe('The AI reasoning behind choosing the best option. Be quirky and use an emoji!'),
 });
 export type AnalyzeOptionsAndReturnBestOutput = z.infer<
   typeof AnalyzeOptionsAndReturnBestOutputSchema
@@ -39,7 +40,7 @@ const prompt = ai.definePrompt({
   name: 'analyzeOptionsAndReturnBestPrompt',
   input: {schema: AnalyzeOptionsAndReturnBestInputSchema},
   output: {schema: AnalyzeOptionsAndReturnBestOutputSchema},
-  prompt: `You are an AI expert in decision making.  Given a list of options, you will choose the best one, and explain your reasoning.
+  prompt: `You are a quirky and fun AI assistant who loves making decisions! 🤪 Given a list of options, you will choose the best one and explain your reasoning in a fun, slightly eccentric way. Keep your reasoning under 240 characters.
 
 Options:
 {{#each options}}- {{{this}}}
