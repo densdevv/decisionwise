@@ -158,7 +158,7 @@ export default function Home() {
               </Button>
             </CardContent>
             <CardFooter>
-              <Button type="submit" disabled={isButtonDisabled} className="w-full" variant="accent">
+              <Button type="submit" disabled={isButtonDisabled} className="w-full transition-transform duration-200 ease-in-out hover:scale-105" variant="accent">
                 {isLoading ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -202,7 +202,7 @@ export default function Home() {
           </Card>
         )}
       </div>
-      <footer className="w-full text-center text-sm text-muted-foreground">
+      <footer className="mt-8 w-full text-center text-sm text-muted-foreground">
         <strong>DecisionWise v1</strong> 25w39a | © 2025{' '}
         <a
           href="https://dens.dev"
