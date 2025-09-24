@@ -62,7 +62,8 @@ export default function Home() {
   };
 
   return (
-    <main className="flex min-h-screen w-full flex-col items-center justify-center bg-background p-4 sm:p-8">
+    <main className="flex min-h-screen w-full flex-col items-center justify-between bg-background p-4 sm:p-8">
+      <div />
       <div className="w-full max-w-2xl space-y-8">
         <header className="text-center">
           <h1 className="font-headline text-4xl font-bold tracking-tight text-primary sm:text-5xl">
@@ -149,6 +150,17 @@ export default function Home() {
           </Card>
         )}
       </div>
+      <footer className="w-full text-center text-sm text-muted-foreground">
+        DecisionWise v1 Update 25w39a| © 2025{' '}
+        <a
+          href="https://dens.dev"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-primary hover:text-primary/80"
+        >
+          densdev
+        </a>
+      </footer>
     </main>
   );
 }
