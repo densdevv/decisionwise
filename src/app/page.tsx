@@ -151,7 +151,7 @@ export default function Home() {
         )}
       </div>
       <footer className="w-full text-center text-sm text-muted-foreground">
-        DecisionWise v1 Update 25w39a| © 2025{' '}
+        <strong>DecisionWise v1</strong> 25w39a | © 2025{' '}
         <a
           href="https://dens.dev"
           target="_blank"
